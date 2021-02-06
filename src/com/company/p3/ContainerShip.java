@@ -12,18 +12,22 @@ public class ContainerShip {
     private double height;
     private double length;
     private double maxMassCapacity;
-    private char[] rowContainerPlace = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O'};
+    private char[] rowContainerPlace = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
     private String idContainerPlace;
-    private int indexContainer = 0;
+
     //Zmienne do dzialan
     private String[] arrayTemp;
     private String result = new String();
-    private double massRight = 0;
-    private int indexRightCount = 0;
-    private int indexRowConitanerRight = 8;
-    private double massLeft = 0;
-    private int indexLeftCount =0;
-    private int indexRowConitanerLeft = 6;
+    private double massRight;
+    private int indexRightCount;
+    private int indexRowConitanerRight;
+    private double massLeft;
+    private int indexLeftCount;
+    private int indexRowConitanerLeft;
+    private int placeContainerLeft = 0; // miejsce kontenera po z
+    private int placeContainerRight = 0; // miejsce kontenera po z
+    private int idUpContainerPlaceLeft = 0;
+    private int idUpContainerPlaceRight = 0;
 
     public ContainerShip(String nameOfShip, double width, double height, double length, double maxMassCapacity){
         this.nameOfShip = nameOfShip;
@@ -31,6 +35,15 @@ public class ContainerShip {
         this.height = height;
         this.length = length;
         this.maxMassCapacity = maxMassCapacity;
+        arrayTemp = new String[10];
+
+        //Potrzebne do dzialan
+        massRight = 0;
+        indexRightCount = 0;
+        indexRowConitanerRight = rowContainerPlace.length-1;
+        massLeft = 0;
+        indexLeftCount = 0;
+        indexRowConitanerLeft = 0;
     }
 
     private String loadingContainer(){
@@ -58,24 +71,17 @@ public class ContainerShip {
 
     //Getting from file data
     public void createManifest(){
-        arrayTemp = new String[10];
         try {
             BufferedReader br = new BufferedReader(new FileReader("containerList.txt"));
             BufferedWriter bw = new BufferedWriter(new FileWriter("Manifest.txt"));
             String line;
             while( (line = br.readLine()) != null){
                String[] vals = line.split(",");
-                arrayTemp[0] = vals[0]; //NumberConitaner
-                arrayTemp[1] = vals[1];
-                arrayTemp[2] = vals[2];
-                arrayTemp[3] = vals[3];
-                arrayTemp[4] = vals[4]; //massContainer
-                arrayTemp[5] = vals[5];
-                arrayTemp[6] = vals[6];
-                arrayTemp[7] = vals[7];
-                arrayTemp[8] = vals[8];
-                arrayTemp[9] = vals[9];
-                bw.write(loadingContainer());
+               for (int i=0;i<10;i++) {
+                   extendArray(arrayTemp);
+                   arrayTemp[i] = vals[i];
+               }
+               bw.write(loadingContainer());
             }
             br.close();
             bw.flush();
@@ -91,11 +97,96 @@ public class ContainerShip {
         }
     }
 
+    private String[] extendArray(String[] arr){
+        String[] tmp = new String[arrayTemp.length * 2];
+
+        for (int i=0; i<arr.length; i++)
+            tmp[i] = arr[i];
+
+        return tmp;
+    }
+
     // Right side of Container Ship
-    public String containerRightSide(){
+    private String containerRightSide(){
         double massTemp = Double.parseDouble(arrayTemp[4]);
 
         massRight += massTemp;
+        if (indexRightCount <= 625) {
+            containerRightRowUp();
+            idContainerPlace = String.valueOf(rowContainerPlace[indexRowConitanerRight]) + String.valueOf(idUpContainerPlaceRight) + String.valueOf(placeContainerRight);
+            result = (arrayTemp[0] + "\t" + idContainerPlace + "\t" + roundTo2DecimalPlace(massTemp) + "\t" + arrayTemp[9] + "\n");
+            placeContainerRight++;
+            indexRightCount++;
+        }else {
+            indexRowConitanerRight--;
+            indexRightCount = 0;
+        }
+
+        return result;
+    }
+
+    private void containerRightRowUp(){
+        if (placeContainerRight > 25){
+            if (idUpContainerPlaceRight > 24)
+                idUpContainerPlaceRight = 0;
+            idUpContainerPlaceRight++;
+            placeContainerRight = 1;
+        }
+    }
+
+    private void containerLeftRowUp(){
+        if (placeContainerLeft > 25){
+            if (idUpContainerPlaceLeft > 24)
+                idUpContainerPlaceLeft = 0;
+            idUpContainerPlaceLeft++;
+            placeContainerLeft = 1;
+        }
+    }
+
+    // Left side of Container Ship
+    private String containerLeftSide(){
+        double massTemp = Double.parseDouble(arrayTemp[4]);
+
+        massLeft += massTemp;
+        if (indexLeftCount <= 625) {
+            containerLeftRowUp();
+            idContainerPlace = String.valueOf(rowContainerPlace[indexRowConitanerLeft]) + String.valueOf(idUpContainerPlaceLeft) + String.valueOf(placeContainerLeft);
+            result = (arrayTemp[0] + "\t" + idContainerPlace + "\t" + roundTo2DecimalPlace(massTemp) + "\t" + arrayTemp[9] + "\n");
+            placeContainerLeft++;
+            indexLeftCount++;
+        } else {
+            indexRowConitanerLeft++;
+            indexLeftCount = 0;
+        }
+
+        return result;
+    }
+
+    private double roundTo2DecimalPlace(double value) {
+        return Math.round(value * 100) / 100;
+    }
+
+/*
+  private String containerLeftSide(){
+        double massTemp = Double.parseDouble(arrayTemp[4]);
+
+        massLeft += massTemp;
+        if (indexLeftCount <= 625) {
+            idContainerPlace = String.valueOf(rowContainerPlace[indexRowConitanerLeft])+ String.valueOf(rowUpContainerPlace[idUpContainerPlaceLeft]) + String.valueOf(placeContainerLeft);
+            test();
+            result = (arrayTemp[0] + "\t" + idContainerPlace + "\t" + roundTo2DecimalPlace(massTemp) + "\t" + arrayTemp[9] + "\n");
+            placeContainerLeft++;
+            indexLeftCount++; //
+        } else {
+            indexRowConitanerLeft++;
+            placeContainerLeft = 0;
+            indexLeftCount = 0;
+        }
+
+        return result;
+    }
+
+massRight += massTemp;
         if (indexRightCount <= 1000) {
             idContainerPlace = String.valueOf(rowContainerPlace[indexRowConitanerRight]) + String.valueOf(indexContainer);
             indexRightCount++;
@@ -112,38 +203,8 @@ public class ContainerShip {
             indexRightCount++;
             result = (arrayTemp[0] + "\t" + idContainerPlace + "\t" + roundTo2DecimalPlace(massTemp) + "\t" + arrayTemp[9] + "\n");
         }
-        return result;
-    }
 
-    // Left side of Container Ship
-    public String containerLeftSide(){
-        double massTemp = Double.parseDouble(arrayTemp[4]);
 
-        massLeft += massTemp;
-        if (indexLeftCount <= 1000) {
-            idContainerPlace = String.valueOf(rowContainerPlace[indexRowConitanerLeft]) + String.valueOf(indexContainer);
-            indexLeftCount++;
-            indexContainer++;
-            result = (arrayTemp[0] + "\t" + idContainerPlace + "\t" + roundTo2DecimalPlace(massTemp) + "\t" + arrayTemp[9] + "\n");
-        } else {
-            if(indexRowConitanerLeft > 0)
-                indexRowConitanerLeft--;
-            else
-                indexRowConitanerLeft++;
-
-            indexContainer++;
-            idContainerPlace = String.valueOf(rowContainerPlace[indexRowConitanerLeft]) + String.valueOf(indexContainer);
-            indexLeftCount++;
-            result = (arrayTemp[0] + "\t" + idContainerPlace + "\t" + roundTo2DecimalPlace(massTemp) + "\t" + arrayTemp[9] + "\n");
-        }
-        return result;
-    }
-
-    public double roundTo2DecimalPlace(double value) {
-        return Math.round(value * 100) / 100;
-    }
-
-/*
    try {
             BufferedReader br = new BufferedReader(new FileReader("containerList.txt"));
             BufferedWriter bw = new BufferedWriter(new FileWriter("Manifest.txt"));

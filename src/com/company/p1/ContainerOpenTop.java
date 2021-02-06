@@ -12,5 +12,4 @@ public class ContainerOpenTop extends ContainerHighCubePW{
     public String toString() {
         return super.toString();
     }
-
 }
